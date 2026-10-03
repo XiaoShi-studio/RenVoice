@@ -84,6 +84,7 @@ def process_tts(folder: Path):
         else:
             print('  未使用GPT模型, 使用默认预训练模型')
             resp = requests.get(url+'/set_gpt_weights',params={'weights_path':default_gpt_weights})
+            print(f'  切换成功状态: {resp.status_code == 200}')
         if model_config['sovits'].get('enabled'):
             resp = requests.get(url+'/set_sovits_weights',params={'weights_path':model_config['sovits'].get('path')})
             if resp.status_code == 200:
@@ -91,8 +92,9 @@ def process_tts(folder: Path):
             else:
                 print('  SoVITS模型切换失败',resp.content)
         else:
-            print('  未使用SoVITS模型')
+            print('  未使用SoVITS模型, 使用默认预训练模型')
             resp = requests.get(url+'/set_sovits_weights',params={'weights_path':default_sovits_weights})
+            print(f'  切换成功状态: {resp.status_code == 200}')
         for rpy in source_files:
             file_script_suc = 0
             file_script_fail = 0
@@ -117,13 +119,17 @@ def process_tts(folder: Path):
                         ori_content = re.sub(r'\{.*?\}', '', ori_content).strip()   # 把像{w}之类的文本标签去了
                         
                         if '[' in ori_content and ']' in ori_content:
-                            print(f"    在\n{ori_content}\n中检测到变量，您希望把它读成什么？")
-                            goal = input('    >>>')
-                            var_map[ori_content+'|'+name] = goal
-                            content = re.sub(r'\[.*?\]', goal, ori_content).strip()
-                            if isCleanText:
-                                content = cleanText(content)
-
+                            key = ori_content+'|'+name
+                            if key not in var_map:
+                                print(f"    在\n{ori_content}\n中检测到变量，您希望把它读成什么？")
+                                goal = input('    >>>')
+                                var_map[ori_content+'|'+name] = goal
+                                content = re.sub(r'\[.*?\]', goal, ori_content).strip()
+                                if isCleanText:
+                                    content = cleanText(content)
+                            else:
+                                content = re.sub(r'\[.*?\]', var_map[key], ori_content).strip()
+                                print('使用预存的变量读音:', ori_content, ori_content[key])
                         elif isCleanText:
                             content = cleanText(ori_content)        # 这行可选，按需选择
                         else:
@@ -132,25 +138,30 @@ def process_tts(folder: Path):
                         voice = full_voice_map[name]['manual'].get(content) or full_voice_map[name]['data'].get(content)
                         # 先查用户指定再查data
                         if voice == None or not (folder / "audio" / voice).exists():      # 缓存没存/文件不在了
-                            status, voice = send_tts(content, name)
-                            if status:
-                                file_script_suc += 1
-                                name_script_suc += 1
-                                new_voice_name = f"voice/{name}/{full_voice_map[name]['last_index']}.wav"
-                                with open(folder / f"audio/{new_voice_name}",'wb') as f:
-                                    f.write(voice)
+                            if ori_content+'|'+name not in failed:
+                                status, voice = send_tts(content, name)
+                                if status:
+                                    file_script_suc += 1
+                                    name_script_suc += 1
+                                    new_voice_name = f"voice/{name}/{full_voice_map[name]['last_index']}.wav"
+                                    with open(folder / f"audio/{new_voice_name}",'wb') as f:
+                                        f.write(voice)
 
-                                full_voice_map[name]['last_index'] += 1        # 序号自增
-                                full_voice_map[name]['data'][content] = new_voice_name # 映射，内容(清洗后) -> 音频
+                                    full_voice_map[name]['last_index'] += 1        # 序号自增
+                                    full_voice_map[name]['data'][content] = new_voice_name # 映射，内容(清洗后) -> 音频
+                                else:
+                                    file_script_fail += 1
+                                    name_script_fail += 1                         
+                                    print("      ===未成功处理的内容===")
+                                    print(f"      源: {ori_content}")
+                                    if isCleanText:
+                                        print(f"      处理后: {content}")
+                                    print(f"      错误: {voice}")
+                                    failed.append(ori_content+'|'+name)
                             else:
-                                file_script_fail += 1
-                                name_script_fail += 1                         
-                                print("      ===未成功处理的内容===")
-                                print(f"      源: {ori_content}")
-                                if isCleanText:
-                                    print(f"      处理后: {content}")
-                                print(f"      错误: {voice}")
-                                failed.append(ori_content+'|'+name)
+                                print('      跳过一个TTS已经失败的内容')
+                                name_script_skip += 1
+                                file_script_skip += 1
                         else:
                             name_script_skip += 1
                             file_script_skip += 1
