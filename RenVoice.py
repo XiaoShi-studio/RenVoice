@@ -129,7 +129,7 @@ def process_tts(folder: Path):
                                     content = cleanText(content)
                             else:
                                 content = re.sub(r'\[.*?\]', var_map[key], ori_content).strip()
-                                print('使用预存的变量读音:', ori_content, ori_content[key])
+                                print('使用预存的变量读音:', ori_content, var_map[key])
                         elif isCleanText:
                             content = cleanText(ori_content)        # 这行可选，按需选择
                         else:
@@ -153,10 +153,16 @@ def process_tts(folder: Path):
                                     file_script_fail += 1
                                     name_script_fail += 1                         
                                     print("      ===未成功处理的内容===")
-                                    print(f"      源: {ori_content}")
+                                    print(f"        源: {ori_content}")
                                     if isCleanText:
-                                        print(f"      处理后: {content}")
-                                    print(f"      错误: {voice}")
+                                        print(f"        处理后: {content}")
+                                    try:
+                                        errorData = json.loads(voice)
+                                        print(f"        错误: {errorData['message']}")
+                                        print(f"        异常: {errorData['Exception'].encode('utf-8').decode('unicode_escape').encode('latin1').decode('utf-8')}")
+                      
+                                    except:
+                                        print(f'        错误: {voice}')
                                     failed.append(ori_content+'|'+name)
                             else:
                                 print('      跳过一个TTS已经失败的内容')
@@ -233,7 +239,7 @@ def process_file(folder: Path):
                                 
                                 key = ori_content+'|'+name
                                 if var_map.get(key):
-                                    content = re.sub(r'\[.*?\]', var_map[ori_content+'|'+name], ori_content).strip()
+                                    content = re.sub(r'\[.*?\]', var_map[key], ori_content).strip()
                                 else:
                                     print(f"    在\n{ori_content}\n中检测到变量，您希望把它读成什么？")
                                     goal = input('  >>>')
