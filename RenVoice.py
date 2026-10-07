@@ -238,7 +238,7 @@ def process_file(folder: Path):
                             if '[' in ori_content and ']' in ori_content:
                                 
                                 key = ori_content+'|'+name
-                                if var_map.get(key):
+                                if var_map.get(key) != None:
                                     content = re.sub(r'\[.*?\]', var_map[key], ori_content).strip()
                                 else:
                                     print(f"    在\n{ori_content}\n中检测到变量，您希望把它读成什么？")
