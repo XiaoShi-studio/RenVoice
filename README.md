@@ -114,7 +114,7 @@ This is a personal hobby project, made mainly for fun and experimentation. It is
 
 The tool is provided "as is", without any warranty. Use it at your own risk. I am not responsible for any data loss, damage, or other issues caused by using this tool.
 
-This project uses GPT-SoVITS for AI voice generation. Please make sure you have the legal right to use any reference audio, and comply with the relevant licenses and terms of service. Do not use it for commercial purposes or illegal activities.
+This project uses GPT-SoVITS for AI voice generation. Please make sure you have the legal right to use any reference audio, and comply with the relevant licenses and terms of service. Prohibited for illegal use.
 
 If you are using this tool for fan works, please respect the original copyright holders. This project is not official and is not affiliated with any game company or voice actor.
 
@@ -243,7 +243,7 @@ k "[player_name]，跟我一起出发吧。"
 
 本工具按“现状”提供，不提供任何担保。使用本工具产生的任何风险由使用者自行承担，作者不对任何数据丢失、损坏或其他问题负责。
 
-本项目使用 GPT-SoVITS 进行 AI 语音生成，请确保你对参考音频拥有合法使用权，并遵守相关许可协议和服务条款。请勿用于商业用途或非法用途。
+本项目使用 GPT-SoVITS 进行 AI 语音生成，请确保你对参考音频拥有合法使用权，并遵守相关许可协议和服务条款。禁止用于非法用途。
 
 如果是用于同人创作，请尊重原版权方。本项目非官方项目，与任何游戏公司或声优无关。
 
